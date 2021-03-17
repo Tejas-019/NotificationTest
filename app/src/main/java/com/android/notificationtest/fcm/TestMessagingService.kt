@@ -34,18 +34,20 @@ class TestMessagingService: FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
-        val notificationsData: NotificationData = Gson().fromJson(remoteMessage.data.toString(), NotificationData::class.java)
+        if(remoteMessage.data.isNotEmpty()) {
+            val notificationsData: NotificationData = Gson().fromJson(remoteMessage.data.toString(), NotificationData::class.java)
 
-        notificationsData.isRepeating?.let {
-            if(it) {
-                scope.launch {
-                    mNotificationsRepository.insert(notificationsData)
-                    mNotificationsHelper.scheduleNotification(notificationsData.id, notificationsData.interval)
+            notificationsData.isRepeating?.let {
+                if(it) {
+                    scope.launch {
+                        mNotificationsRepository.insert(notificationsData)
+                        mNotificationsHelper.scheduleNotification(notificationsData.id, notificationsData.interval)
+                    }
                 }
             }
-        }
 
-        mNotificationsHelper.showNotification(notificationsData)
+            mNotificationsHelper.showNotification(notificationsData)
+        }
     }
 
     override fun onNewToken(token: String) {
